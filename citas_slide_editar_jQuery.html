@@ -1,0 +1,160 @@
+
+<!doctype html>
+<html>
+<head><meta charset="utf-8"><title> CITAS </title> 
+<link rel="stylesheet" type="text/css" href="css/citas_slide.css" />
+
+<script type="text/javascript" src="javascript/jquery-2.1.4.min.js" ></script>
+<script type="text/javascript" src="javascript/galeria.js" ></script>
+
+<script>
+var t, actual, galeriaLocal, galeria;
+
+function select(i){
+   actual = i;
+
+  $("#citas")
+    .removeClass("on off")
+    .addClass(function(j){return(j===i)?"on":"off";});
+
+  $("#persona").html(galeriaLocal[i].persona);
+  $("#frase").html(galeriaLocal[i].frase);
+  $("#foto").attr("src", galeriaLocal[i].foto);
+
+  clearTimeout(t);
+  t = setTimeout( function(){select((i + 1) % galeriaLocal.length);}, 3000);
+}
+
+function generar_selector(){ // regenera la botonera
+    var selector = $("#selector");
+
+    selector.html("");
+  
+    galeriaLocal.forEach(function(elem,i) {
+    selector.append("<li><a onClick='select("+i+")'></a></li>");
+  });
+}
+
+$(function (){
+  //Use of local storage
+  // ## https://github.com/AitorSantaeugenia/PR_Prog_web_UOC ##
+
+  //uso de localstorage, JSON para realizar una cadena
+  localStorage.citas = localStorage.citas || JSON.stringify(galeria);
+  galeriaLocal = JSON.parse(localStorage.citas);
+  
+  generar_selector();
+
+  $("#editar").on("click", function(){
+    if($("#datos").css("display") === "none") {
+      clearTimeout(t);
+    
+      $("#persona_d").html(galeriaLocal[actual].persona);
+	  //alert("hi!");
+      $("#frase_d").html(galeriaLocal[actual].frase);
+      $("#foto_d").html(galeriaLocal[actual].foto);
+      $("#datos").css("display", "block");
+      $(".editar img").css("transform", "rotate(180deg)");
+    }
+    else {
+	  //alert("hi!");
+      $("#datos").css("display", "none");
+      $(".editar img").css("transform", "rotate(0deg)");
+      select(actual);
+    }
+  })
+
+	//Añadir cita
+	$("#nuevo").on("click", function(){
+    $("#datos").css("display", "none");
+
+    actual = galeriaLocal.push({
+       persona:$("#persona_d").html(),
+       frase:$("#frase_d").html(),
+       foto:$("#foto_d").html()
+    }) - 1;
+
+    localStorage.citas = JSON.stringify(galeriaLocal);
+
+    generar_selector();
+    select(actual);
+  })
+
+  //Borrar cita
+	$("#borrar").on("click", function(){
+    $("#datos").css("display", "none");
+
+    galeriaLocal.splice(actual, 1);
+    localStorage.citas = JSON.stringify(galeriaLocal);
+    actual = galeriaLocal.length - 1;
+
+    generar_selector();
+    select(actual);
+
+  })
+
+  //Editar cita
+  $("#guardar").on("click", function(){
+    $("#datos").css("display", "none");
+
+      galeriaLocal[actual].persona = $("#persona_d").html();
+      galeriaLocal[actual].frase = $("#frase_d").html();
+      galeriaLocal[actual].foto = $("#foto_d").html();
+
+      localStorage.citas = JSON.stringify(galeriaLocal);
+      select(actual);
+  })
+
+  //Reestablecer cajetilla
+  $("#reset").on("click", function(){
+    clearTimeout(t);
+    var v = confirm("Reestablecer valores por defecto?");
+
+    if(v) {
+      localStorage.removeItem("citas");
+      galeriaLocal = galeria;
+      generar_selector();
+      actual = 0;
+	  //Si clicamos sobre refrescar, quitamos caja de editar
+	  $("#datos").css("display", "none");	  
+    }
+    select(actual);
+  })
+  select(0);
+});
+</script>
+</head>
+
+<body>
+<div class="contenido">
+  <nav> 
+    <ul id="selector"></ul>
+  </nav>
+  <section id="caja">
+    <img id="foto" alt="" />
+    <div class="textos">
+      <p id="frase"></p>
+      <p id="persona"></p>
+    </div>
+  </section>
+  <div class="editar" id="editar" alt="Editar cita"> 
+    <img src="images/carat-d-white.svg" alt=""/>
+	
+  </div>
+  <section id="datos">
+    <div contentEditable="true" id="persona_d"></div>
+    <div contentEditable="true" id="frase_d"></div>
+    <div contentEditable="true" id="foto_d"></div>
+    <div id="botones">
+      <ul>
+		<li><img src="images/refresh-icon.png" alt="Refrescar pagina" id="reset" /></li>
+        <li><img src="images/edit-black.svg" alt="Guardar cita" id="guardar"/></li>
+        <li><img src="images/plus-black.svg" alt="Añadir cita" id="nuevo"/></li>
+        <li><img src="images/delete-black.svg" alt="Borrar cita" id="borrar"/></li>
+      </ul>
+    </div>
+  </section>
+  </div>
+</body>
+</html>
+
